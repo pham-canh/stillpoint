@@ -956,7 +956,9 @@ function renderSummary(reason, summary, elapsed) {
     els.summaryLede.textContent =
       'Even a few slower breaths are a pause. Come back when you have another minute.';
   } else {
-    els.summaryTitle.textContent = 'You gave yourself two minutes.';
+    const minutes = (data?.durationMs ?? elapsed) / 60000;
+    els.summaryTitle.textContent =
+      minutes >= 1.75 ? 'You gave yourself two minutes.' : 'You gave yourself a minute.';
     els.summaryLede.textContent = 'No score. No streak. Just a slower rhythm to carry with you.';
   }
 
