@@ -1,17 +1,20 @@
-# DEV submission draft
+# DEV submission (published)
 
-Paste the section below into a new DEV post. Required front matter:
+Live post: https://dev.to/phamcanh/stillpoint-a-two-minute-breathing-retreat-that-learns-your-rhythm-8k7
+
+Published November 11, 2026 with tags `buildinpublic, devchallenge, frontend, presagechallenge`.
+The post is in English, public, and entered in both prize categories. The reference front matter is:
 
 ```yaml
 ---
 title: Stillpoint: a two-minute breathing retreat that learns your rhythm
-published: false
+published: true
 tags: devchallenge, presagechallenge
 ---
 ```
 
-The post must be in English to be eligible for prizes. Replace every `<...>` placeholder before
-publishing. Keep the post public, and confirm the repository and demo video are public too.
+The section below is the submitted body. The live post also has a TL;DR, cover image, and a live
+screenshot above the Demo section. Keep the repository and demo video public too.
 
 ---
 
@@ -160,20 +163,20 @@ Stillpoint does not provide medical advice, make medical decisions, or monitor a
 
 # Pre-submit checklist
 
-- [ ] DEV post uses the template headings and front matter.
-- [ ] Tags are exactly `devchallenge, presagechallenge`.
-- [ ] Repository is public and contains `README.md`, `PRIVACY.md`, `LICENSE`, and the source.
-- [ ] No `.env`, API key, personal clip, or secret is committed.
-- [ ] Demo video is public and clearly shows live pulse and breathing values from the SDK.
-- [ ] Demo video shows the camera consent step and the optional expression setting.
-- [ ] Post links to the privacy note and explains storage, sharing, retention, deletion, SDK
+- [x] DEV post uses the template headings.
+- [x] Tags include `devchallenge` and `presagechallenge`; extra community tags are allowed.
+- [x] Repository is public and contains `README.md`, `PRIVACY.md`, `LICENSE`, and the source.
+- [x] No `.env`, API key, personal clip, or secret is committed.
+- [x] Demo video is public and clearly shows live pulse and breathing values from the SDK.
+- [x] Demo video shows the camera consent step; expression is presented as optional and off by default.
+- [x] Post links to the privacy note and explains storage, sharing, retention, deletion, SDK
       telemetry, and optional AI use.
-- [ ] Both prize categories are named in the post.
-- [ ] Post is in English.
-- [ ] One entry only; no team submission.
-- [ ] Add a cover image (optional but recommended).
-- [ ] If an agent session is embedded, it is public and free of secrets.
-- [ ] Read the post once on a phone-sized screen.
+- [x] Both prize categories are named in the post.
+- [x] Post is in English.
+- [x] One entry only; no team submission.
+- [x] Cover image added to the published post.
+- [x] No agent session embedded; the upload is optional.
+- [x] Post reviewed at a narrow viewport.
 
 # Demo video shot list (about 2 minutes)
 

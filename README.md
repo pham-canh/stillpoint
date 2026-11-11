@@ -158,7 +158,7 @@ Node server (server.mjs) ── SmartSpectra SDK ── metrics events
 - `public/lib/pacer.js` — adaptive breathing pacer.
 - `public/lib/stats.js` — median/confidence summary helpers.
 - `public/scene.js` — canvas landscape, heartbeat ripples, optional expression palette.
-- `scripts/smoke.mjs` — headless SDK smoke test with a local video.
+- `docs/decisions.md` — pacer, privacy, HRV-confidence, and testing decisions.
 
 ## Privacy
 

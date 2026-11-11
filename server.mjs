@@ -3,7 +3,6 @@ import path from 'node:path';
 import { createReadStream, existsSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
-import { monitorEventLoopDelay } from 'node:perf_hooks';
 import { WebSocketServer } from 'ws';
 import { loadEnv } from './lib/env.mjs';
 
@@ -244,16 +243,6 @@ async function stopActive(reason) {
   try {
     summary = await current.session.stop();
   } catch {}
-  if (summary) {
-    const durationMs = summary.durationMs || 0;
-    const fps = durationMs > 0 ? Math.round((summary.frames.in / durationMs) * 1000) : 0;
-    console.log(
-      `Session ended (${reason}): ${Math.round(durationMs / 1000)}s, ` +
-        `${summary.frames.in} frames in, ${summary.frames.dropped} dropped, ${fps} fps, ` +
-        `send ${summary.timing?.sendAvgMs}ms avg / ${summary.timing?.sendMaxMs}ms max, ` +
-        `metrics ${summary.timing?.metricsAvgMs}ms avg / ${summary.timing?.metricsMaxMs}ms max`,
-    );
-  }
   broadcast('ended', { reason, summary, at: Date.now() });
   return summary;
 }
@@ -514,27 +503,6 @@ const server = http.createServer(async (req, res) => {
 
 const wss = new WebSocketServer({ noServer: true, maxPayload: 2 * 1024 * 1024 });
 
-const loopDelay = monitorEventLoopDelay({ resolution: 20 });
-loopDelay.enable();
-const wsStats = { messages: 0, bytes: 0, since: Date.now() };
-setInterval(() => {
-  const elapsed = Math.max(1, (Date.now() - wsStats.since) / 1000);
-  if (active) {
-    const buffered = [...wss.clients].map((client) => client.bufferedAmount).join(',');
-    console.log(
-      `ws inflow: ${(wsStats.messages / elapsed).toFixed(1)} msg/s, ` +
-        `${(wsStats.bytes / 1e6 / elapsed).toFixed(1)} MB/s, ` +
-        `frames ${active.session.frames.in}, buffered ${buffered}, ` +
-        `loop p95 ${(loopDelay.percentile(95) / 1e6).toFixed(1)}ms ` +
-        `max ${(loopDelay.max / 1e6).toFixed(1)}ms`,
-    );
-  }
-  wsStats.messages = 0;
-  wsStats.bytes = 0;
-  wsStats.since = Date.now();
-  loopDelay.reset();
-}, 5000).unref();
-
 server.on('upgrade', (req, socket, head) => {
   let pathname;
   try {
@@ -560,8 +528,6 @@ wss.on('connection', (ws) => {
   });
   ws.on('message', (data, isBinary) => {
     if (isBinary) {
-      wsStats.messages += 1;
-      wsStats.bytes += data.length;
       handleFrame(Buffer.isBuffer(data) ? data : Buffer.from(data));
       return;
     }
