@@ -15,6 +15,12 @@ slower rhythm instead of asking you to match an arbitrary one.
 
 > Built for the [Presage SmartSpectra SDK Challenge](https://dev.to/challenges/presage-2026-11-04).
 
+[Watch the 2-minute demo](https://github.com/pham-canh/stillpoint/releases/download/demo-v1/stillpoint-demo.mp4)
+· [Release page](https://github.com/pham-canh/stillpoint/releases/tag/demo-v1)
+
+The demo uses a 70-second shortened session (`SETTLE_MS` / `SESSION_MS`) to keep the video tight;
+the default experience is 32 seconds of settling plus 90 seconds of guided breathing.
+
 ## Requirements
 
 - Node.js 20 or newer

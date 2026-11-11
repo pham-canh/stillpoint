@@ -33,11 +33,15 @@ around a simple constraint: the camera frames should never leave the machine.
 
 ## Demo
 
-`<demo video link>`
+[Watch the 2-minute demo (MP4)](https://github.com/pham-canh/stillpoint/releases/download/demo-v1/stillpoint-demo.mp4)
+
+Release page: https://github.com/pham-canh/stillpoint/releases/tag/demo-v1
 
 The demo shows a live session on a Linux x64 machine with a USB camera: the local camera preview,
-live SmartSpectra pulse and breathing readings, validation hints, the adaptive pacer, and the
-summary. The app is shown running locally, which is the intended deployment.
+live SmartSpectra pulse and breathing readings (HRV when the signal is ready), validation hints, the
+adaptive pacer, and the summary. The app is shown running locally, which is the intended deployment.
+The recording uses a 70-second shortened session via `SETTLE_MS` / `SESSION_MS`; the default is 32
+seconds of settling plus 90 seconds of guided breathing.
 
 ## Code
 
