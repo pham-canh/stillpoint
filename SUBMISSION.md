@@ -41,12 +41,12 @@ summary. The app is shown running locally, which is the intended deployment.
 
 ## Code
 
-`<public repository link>`
+https://github.com/pham-canh/stillpoint
 
 Setup:
 
 ```bash
-git clone <repository>
+git clone https://github.com/pham-canh/stillpoint.git
 cd stillpoint
 npm install
 cp .env.example .env   # add SMARTSPECTRA_API_KEY
