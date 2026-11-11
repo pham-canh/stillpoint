@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#060b18" />
+    <meta name="description" content="Stillpoint is a two-minute, camera-only breathing retreat that adapts to the rhythm measured by the Presage SmartSpectra SDK." />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; img-src 'self' blob: data:; media-src 'self' blob:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Stillpoint — a breathing retreat that learns your rhythm</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <canvas id="scene" aria-hidden="true"></canvas>
+    <div class="vignette" aria-hidden="true"></div>
+
+    <main class="app">
+      <section id="screen-intro" class="screen intro">
+        <div class="intro-card">
+          <header class="brand"><span class="mark" aria-hidden="true"></span> Stillpoint</header>
+          <p class="eyebrow">A camera-only breathing retreat</p>
+          <h1>Two minutes to<br /><em>come back to yourself.</em></h1>
+          <p class="lede">
+            Stillpoint reads your pulse and breathing through the camera, then guides you into a
+            slower rhythm that starts where you already are.
+          </p>
+
+          <ul class="facts">
+            <li><strong>No wearable</strong><span>Just a camera</span></li>
+            <li><strong>On this device</strong><span>Nothing recorded</span></li>
+            <li><strong>About 2 minutes</strong><span id="fact-timing">32s settle + 90s guided</span></li>
+          </ul>
+
+          <div class="notice setup" id="setup-notice" hidden>
+            <p><strong>The server needs a Presage API key.</strong></p>
+            <p>
+              Add <code>SMARTSPECTRA_API_KEY</code> to <code>.env</code>, restart the server, then
+              reload this page.
+            </p>
+          </div>
+
+          <div class="notice demo" id="demo-notice" hidden>
+            <p><strong>Demo mode.</strong></p>
+            <p>
+              A recorded clip is replayed through the same SmartSpectra pipeline. No camera is
+              used, and the clip stays on this machine.
+            </p>
+          </div>
+
+          <div class="consent-row">
+            <input type="checkbox" id="consent" />
+            <label for="consent">
+              I consent to camera-based measurement of my pulse and breathing, and I understand this
+              is a wellness experience — not a medical device.
+            </label>
+          </div>
+          <div class="consent-row optional">
+            <input type="checkbox" id="expressions" />
+            <label for="expressions">
+              Let the scene respond to my expression. Optional; check to enable it.
+            </label>
+          </div>
+          <button type="button" class="link privacy-open" id="privacy-open">
+            How the camera and data are handled
+          </button>
+
+          <div class="actions">
+            <button class="primary" id="start" type="button" disabled>Begin</button>
+            <span class="actions-note" id="start-note">Find a comfortable seat and even light.</span>
+          </div>
+
+          <p class="fine">
+            Best with a still camera, even light, and your face and upper chest in frame. You can
+            stop at any time; stopping releases the camera.
+          </p>
+        </div>
+        <footer class="foot">
+          Built with the Presage SmartSpectra SDK · frames never leave this machine · not a medical
+          device
+        </footer>
+      </section>
+
+      <section id="screen-session" class="screen session" hidden>
+        <header class="hud-top">
+          <div class="brand small"><span class="mark" aria-hidden="true"></span> Stillpoint</div>
+          <div class="hud-status">
+            <span class="badge" id="camera-badge"><i aria-hidden="true"></i><span id="camera-badge-text">Camera on</span></span>
+            <span class="timer" id="timer">0:00</span>
+            <button class="ghost tiny" id="preview-toggle" type="button">Hide preview</button>
+            <button class="stop" id="stop" type="button">Stop</button>
+          </div>
+        </header>
+
+        <div class="stage">
+          <div class="preview" id="preview-card">
+            <video id="preview" muted playsinline autoplay></video>
+            <canvas id="preview-canvas" class="preview-canvas" aria-label="Local camera preview" hidden></canvas>
+            <div class="preview-overlay">
+              <span class="preview-label" id="preview-label">Positioning</span>
+              <p class="hint" id="hint">Sit comfortably. Face and upper chest in frame.</p>
+            </div>
+          </div>
+
+          <div class="pacer">
+            <p class="phase" id="phase">Settle in</p>
+            <p class="phase-sub" id="phase-sub">Let your breath be natural.</p>
+            <p class="breaths" id="breaths"></p>
+          </div>
+
+          <div class="metrics">
+            <div class="metric">
+              <span class="metric-label">Pulse</span>
+              <span class="metric-value" id="pulse">—</span>
+              <span class="metric-unit">bpm</span>
+              <span class="signal" id="pulse-signal"></span>
+            </div>
+            <div class="metric">
+              <span class="metric-label">Breathing</span>
+              <span class="metric-value" id="breathing">—</span>
+              <span class="metric-unit">/min</span>
+              <span class="signal" id="breathing-signal"></span>
+            </div>
+            <div class="metric detail">
+              <span class="metric-label">HRV · RMSSD</span>
+              <span class="metric-value" id="hrv">—</span>
+              <span class="metric-unit">ms</span>
+              <span class="signal" id="hrv-signal"></span>
+            </div>
+          </div>
+
+          <p class="expression-note" id="expression-note" hidden></p>
+        </div>
+
+        <div class="hud-bottom">
+          <p id="session-note">Breathe naturally while we learn your rhythm.</p>
+        </div>
+      </section>
+
+      <section id="screen-summary" class="screen summary" hidden>
+        <div class="summary-card">
+          <p class="eyebrow">Session complete</p>
+          <h2 id="summary-title">You gave yourself two minutes.</h2>
+          <p class="lede" id="summary-lede">
+            No score. No streak. Just a slower rhythm to carry with you.
+          </p>
+
+          <dl class="summary-grid">
+            <div><dt>Time</dt><dd id="sum-time">—</dd></div>
+            <div><dt>Breaths guided</dt><dd id="sum-breaths">—</dd></div>
+            <div><dt>Average pulse</dt><dd id="sum-pulse">—</dd></div>
+            <div><dt>Breathing rate</dt><dd id="sum-breathing">—</dd></div>
+            <div><dt>HRV · RMSSD</dt><dd id="sum-hrv">—</dd></div>
+            <div><dt>Signal</dt><dd id="sum-signal">—</dd></div>
+          </dl>
+
+          <p class="fine" id="summary-note">
+            Wellness only. SmartSpectra metrics are not FDA-cleared and are not a diagnosis.
+          </p>
+
+          <div class="actions">
+            <button class="primary" id="again" type="button">Breathe again</button>
+            <button class="ghost" id="done" type="button">Done</button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <p class="sr-only" id="announcer" aria-live="polite"></p>
+
+    <div class="error-toast" id="error-toast" role="alert" hidden>
+      <p id="error-text"></p>
+      <button type="button" class="link" id="error-close">Dismiss</button>
+    </div>
+
+    <dialog id="privacy-dialog">
+      <article>
+        <h2>Camera and data</h2>
+        <p>
+          Stillpoint asks for camera access only after you press <strong>Begin</strong>. Frames are
+          sent to the Stillpoint process on this computer over loopback, measured in memory, and
+          dropped immediately. Nothing is recorded, saved, or uploaded. No account, analytics, or
+          third-party AI is involved.
+        </p>
+        <p>
+          Pulse, breathing and HRV are estimated by the Presage SmartSpectra SDK. Expression is
+          optional and can be turned off on the intro screen. The SDK contacts Presage only to
+          authenticate the API key and check the subscription; the metrics themselves are computed
+          on this device. SDK telemetry is explicitly disabled.
+        </p>
+        <p>
+          Closing the session stops the camera and discards the measurements. This is a wellness
+          experience, not a medical device, and it does not diagnose or treat anything.
+        </p>
+        <p><a href="/privacy" target="_blank" rel="noreferrer">Read the full privacy note</a></p>
+        <div class="actions">
+          <button type="button" class="primary" id="privacy-close">Got it</button>
+        </div>
+      </article>
+    </dialog>
+
+    <noscript>Stillpoint needs JavaScript to run the camera session.</noscript>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

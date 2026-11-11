@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#060b18" />
+    <meta name="description" content="How Stillpoint handles camera frames, measurements, retention, and third parties." />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; connect-src 'self' ws://127.0.0.1:* ws://localhost:*; img-src 'self' blob: data:; media-src 'self' blob:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'"
+    />
+    <title>Stillpoint — camera and data</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="doc">
+      <a class="back" href="/">Back to Stillpoint</a>
+      <header class="brand"><span class="mark" aria-hidden="true"></span> Stillpoint</header>
+      <h1>Camera and data</h1>
+      <p>
+        Stillpoint is a two-minute, camera-only breathing experience. This page explains exactly
+        what happens to your camera frames and the measurements derived from them.
+      </p>
+
+      <div class="doc-box">
+        <p>
+          <strong>The short version:</strong> frames are measured in memory on this computer,
+          never recorded, never uploaded, and discarded when the session ends. The only network
+          request is the Presage SDK authenticating your API key. SDK telemetry is disabled.
+        </p>
+      </div>
+
+      <h2>What the camera sees</h2>
+      <p>
+        In the default mode, the local Stillpoint process opens the camera only after you tick the
+        consent box and press <strong>Begin</strong>. It captures video at up to 1280×720 with the
+        SDK's native <code>useCamera()</code> path. Frames stay inside that process for
+        measurement; they are not written to disk or uploaded. No browser camera permission prompt
+        is needed in this mode.
+      </p>
+      <p>
+        A downsampled 320×240 preview is sent over a loopback WebSocket so you can position
+        yourself: face and upper chest in frame, even light, camera still. You can hide the preview
+        during a session without stopping the measurement.
+      </p>
+      <p>
+        If the server cannot access a camera, the optional <code>CAPTURE_MODE=frames</code> fallback
+        lets the browser capture and send 640×480 RGBA frames over loopback instead. In that mode
+        the browser's camera prompt is a second, independent consent.
+      </p>
+
+      <h2>Where processing happens</h2>
+      <p>
+        The Presage SmartSpectra SDK runs natively inside the local Stillpoint process. It estimates
+        pulse rate, breathing rate, and HRV directly from the camera. Expression analysis is
+        optional and off by default; if you enable it, the scene's colors can follow that estimate.
+        With it off, the SDK is not asked for the expression metric at all. Stillpoint requests only
+        these four signals, not traces, landmarks, blinking, or talking.
+      </p>
+      <p>
+        Derived measurements stay in memory. The browser also receives them over a local
+        server-sent-events connection so the interface can show pulse, breathing, and HRV in real
+        time.
+      </p>
+
+      <h2>What leaves this machine</h2>
+      <p>
+        Camera frames and measurements do <strong>not</strong> leave this machine. Stillpoint does not
+        send them to Presage. The SmartSpectra SDK contacts Presage to authenticate the API key and
+        verify the subscription, and may obtain its model or update files; those requests do not
+        include Stillpoint's frames or measurements. SDK telemetry is explicitly disabled in code
+        (<code>enableTelemetry: false</code>). Stillpoint has no analytics, advertising, accounts,
+        or third-party AI services, and the page loads no external scripts, fonts, or images.
+      </p>
+
+      <h2>Storage, retention, and deletion</h2>
+      <ul>
+        <li>No frames are written to disk, buffered in a file, or stored in a database.</li>
+        <li>No measurements are logged or persisted by Stillpoint.</li>
+        <li>Frames are dropped immediately after they are handed to the SDK.</li>
+        <li>Measurements are discarded when the session ends or the tab closes.</li>
+        <li>Stopping a session releases the camera and closes the local connections.</li>
+        <li>
+          If you set the optional <code>DEMO_VIDEO</code> server variable, a local clip you chose is
+          read by the SDK instead of a camera; it is not uploaded either.
+        </li>
+      </ul>
+
+      <h2>Consent and control</h2>
+      <p>
+        Nothing starts until you tick the consent checkbox. In the default native mode the local
+        Stillpoint process opens the camera only after <strong>Begin</strong>; the browser does not request
+        camera access. In the <code>frames</code> fallback, the browser prompt is a second,
+        independent consent. You can stop at any time with the <strong>Stop</strong> button or the
+        Escape key; hiding the tab also ends the session. The camera is released when the session
+        ends.
+      </p>
+
+      <h2>Sharing and third parties</h2>
+      <p>
+        Stillpoint does not share frames or measurements with anyone. The only third party involved
+        is Presage, which validates the API key used by the SDK. There are no optional AI services,
+        no cloud inference, and no remote logging.
+      </p>
+
+      <h2>Security boundaries</h2>
+      <p>
+        The Stillpoint server binds to loopback only (<code>127.0.0.1</code> by default), rejects
+        cross-origin WebSocket and control requests, and sets a strict Content Security Policy. The
+        app is designed to be opened at <code>http://127.0.0.1:4317</code> or
+        <code>http://localhost:4317</code>. In native mode the server process owns the camera; the
+        browser-facing camera policy is used only by the <code>frames</code> fallback.
+      </p>
+
+      <h2>Wellness, not medicine</h2>
+      <p>
+        SmartSpectra metrics are for general wellness and informational purposes. They are not
+        FDA-cleared and are not a diagnosis or treatment. Stillpoint does not provide medical
+        advice, make medical decisions, or monitor anyone covertly.
+      </p>
+
+      <p class="fine">
+        Stillpoint is an open-source entry for the Presage SmartSpectra SDK Challenge. Read the
+        source at the public repository linked from the submission post, or contact the maintainer
+        through the repository issues.
+      </p>
+    </main>
+  </body>
+</html>

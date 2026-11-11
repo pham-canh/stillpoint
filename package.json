@@ -1,0 +1,21 @@
+{
+  "name": "stillpoint",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A 90-second breathing retreat that adapts to the rhythm measured by the Presage SmartSpectra SDK.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "dev": "node --watch server.mjs",
+    "test": "node --test test/*.test.mjs",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@smartspectra/node-sdk": "^3.5.0",
+    "ws": "^8.18.0"
+  }
+}
