@@ -151,14 +151,10 @@ a strict Content Security Policy. The intended URL is `http://127.0.0.1:4317`.
 data path. Stillpoint itself does not record the session. If the optional `DEMO_VIDEO` setting is
 used, it reads a local clip chosen by the operator; that clip is not uploaded.
 
-Full details: `<repository link>/blob/main/PRIVACY.md` and the in-app `/privacy` page.
+Full details: https://github.com/pham-canh/stillpoint/blob/main/PRIVACY.md and the in-app `/privacy` page.
 
 **Wellness only.** SmartSpectra metrics are not FDA-cleared and are not a diagnosis or treatment.
 Stillpoint does not provide medical advice, make medical decisions, or monitor anyone covertly.
-
-## Agent Session
-
-`<optional: upload the curated transcript, then press Make Public and paste the embed here>`
 
 ---
 
