@@ -30,7 +30,7 @@
           </p>
 
           <ul class="facts">
-            <li><strong>No wearable</strong><span>Just a camera</span></li>
+            <li><strong>No wearable</strong><span id="fact-source">Just a camera</span></li>
             <li><strong>On this device</strong><span>Nothing recorded</span></li>
             <li><strong>About 2 minutes</strong><span id="fact-timing">32s settle + 90s guided</span></li>
           </ul>
@@ -40,6 +40,14 @@
             <p>
               Add <code>SMARTSPECTRA_API_KEY</code> to <code>.env</code>, restart the server, then
               reload this page.
+            </p>
+          </div>
+
+          <div class="notice demo" id="mock-notice" hidden>
+            <p><strong>Simulated signal.</strong></p>
+            <p>
+              No camera and no API key. Pulse and breathing are generated locally so you can try the
+              adaptive pacer. Nothing here is a measurement.
             </p>
           </div>
 
@@ -53,7 +61,7 @@
 
           <div class="consent-row">
             <input type="checkbox" id="consent" />
-            <label for="consent">
+            <label for="consent" id="consent-label">
               I consent to camera-based measurement of my pulse and breathing, and I understand this
               is a wellness experience — not a medical device.
             </label>

@@ -462,6 +462,17 @@ h2 {
   transform: none;
 }
 
+.preview.mock-mode video {
+  display: none;
+}
+
+.preview.mock-mode {
+  background:
+    radial-gradient(120% 90% at 30% 20%, rgba(122, 200, 190, 0.22), transparent 60%),
+    radial-gradient(90% 80% at 80% 90%, rgba(122, 160, 220, 0.2), transparent 55%),
+    #0a1220;
+}
+
 .preview.hidden-preview video,
 .preview.hidden-preview canvas {
   opacity: 0;

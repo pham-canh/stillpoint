@@ -12,7 +12,8 @@
     "start": "node server.mjs",
     "dev": "node --watch server.mjs",
     "test": "node --test test/*.test.mjs",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "demo": "node scripts/demo.mjs"
   },
   "dependencies": {
     "@smartspectra/node-sdk": "^3.5.0",

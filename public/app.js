@@ -13,11 +13,14 @@ const els = {
   },
   setupNotice: $('setup-notice'),
   demoNotice: $('demo-notice'),
+  mockNotice: $('mock-notice'),
   consent: $('consent'),
+  consentLabel: $('consent-label'),
   expressions: $('expressions'),
   start: $('start'),
   startNote: $('start-note'),
   factTiming: $('fact-timing'),
+  factSource: $('fact-source'),
   privacyOpen: $('privacy-open'),
   privacyDialog: $('privacy-dialog'),
   privacyClose: $('privacy-close'),
@@ -61,10 +64,12 @@ const els = {
 
 const DEFAULT_HINT = 'Sit comfortably. Face and upper chest in frame.';
 const DEMO_HINT = 'Replaying a local clip through the same SmartSpectra pipeline.';
+const MOCK_HINT = 'Simulated signal: the pacer is real, the pulse and breathing are generated.';
 const TERMINAL_ERROR_CODES = new Set([2, 3, 4, 13, 14]);
 
 const config = {
   hasKey: false,
+  mock: false,
   demo: false,
   captureMode: 'frames',
   sessionMs: 90000,
@@ -124,16 +129,24 @@ async function loadConfig() {
 }
 
 function applyConfig() {
-  els.setupNotice.hidden = config.hasKey;
+  els.setupNotice.hidden = config.hasKey || config.mock;
   els.demoNotice.hidden = !config.demo;
+  els.mockNotice.hidden = !config.mock;
   els.factTiming.textContent = `${Math.round(config.settleMs / 1000)}s settle + ${Math.round(config.sessionMs / 1000)}s guided`;
+  if (config.mock) {
+    els.factSource.textContent = 'A simulated signal';
+    els.consentLabel.textContent =
+      'This demo uses no camera. I understand the values are generated locally and are not a measurement.';
+  }
   updateStartState();
 }
 
 function updateStartState() {
-  const ready = config.hasKey && els.consent.checked;
+  const ready = (config.hasKey || config.mock) && els.consent.checked;
   els.start.disabled = !ready;
-  if (!config.hasKey) {
+  if (config.mock) {
+    els.startNote.textContent = 'Simulated signal: no camera, no key. The pacer is real.';
+  } else if (!config.hasKey) {
     els.startNote.textContent = 'Add a Presage API key on the server to begin.';
   } else if (config.demo) {
     els.startNote.textContent = 'Demo mode: a local clip is replayed through the SDK.';
@@ -153,6 +166,9 @@ function setCameraBadge(kind) {
   if (kind === 'camera') {
     els.cameraBadge.classList.remove('off');
     els.cameraBadgeText.textContent = 'Camera on';
+  } else if (kind === 'mock') {
+    els.cameraBadge.classList.add('off');
+    els.cameraBadgeText.textContent = 'Simulated';
   } else {
     els.cameraBadge.classList.add('off');
     els.cameraBadgeText.textContent = 'Recorded clip';
@@ -233,7 +249,7 @@ function hideError() {
 
 async function beginSession() {
   if (state.screen !== 'intro') return;
-  if (!config.hasKey) {
+  if (!config.hasKey && !config.mock) {
     showError('Add SMARTSPECTRA_API_KEY to .env, restart the server, then reload this page.');
     return;
   }
@@ -247,14 +263,21 @@ async function beginSession() {
   showScreen('session');
   els.timer.textContent = '0:00';
   els.phase.textContent = 'Preparing';
-  els.phaseSub.textContent = config.demo ? 'Loading the recorded clip…' : 'Asking for the camera…';
+  els.phaseSub.textContent = config.mock
+    ? 'Starting the simulated signal…'
+    : config.demo
+      ? 'Loading the recorded clip…'
+      : 'Asking for the camera…';
   setSessionNote('One moment.');
-  setHint(config.demo ? DEMO_HINT : DEFAULT_HINT);
-  setCameraBadge(config.demo ? 'clip' : 'camera');
+  setHint(config.mock ? MOCK_HINT : config.demo ? DEMO_HINT : DEFAULT_HINT);
+  setCameraBadge(config.mock ? 'mock' : config.demo ? 'clip' : 'camera');
 
   try {
     startEvents();
-    if (config.demo) {
+    if (config.mock) {
+      els.previewCard.classList.add('mock-mode');
+      els.previewLabel.textContent = 'Simulated';
+    } else if (config.demo) {
       await startDemoVideo();
     } else if (config.captureMode === 'camera') {
       startServerPreview();
@@ -278,7 +301,7 @@ async function beginSession() {
     state.phase = 'settle';
     state.pacer = new Pacer({ periodMs: 10000 });
     state.lastPhaseKey = '';
-    if (!config.demo && config.captureMode !== 'camera') startPump();
+    if (!config.demo && !config.mock && config.captureMode !== 'camera') startPump();
     startTicker();
     updateSettle(performance.now(), true);
     announce('Session started. Settle in and let your breath be natural.');
@@ -315,7 +338,7 @@ function resetSession() {
   state.hintAt = 0;
   state.expressionAt = 0;
   els.expressionNote.hidden = true;
-  els.previewCard.classList.remove('hidden-preview', 'demo-mode');
+  els.previewCard.classList.remove('hidden-preview', 'demo-mode', 'mock-mode');
   els.previewToggle.textContent = 'Hide preview';
   els.previewLabel.textContent = 'Positioning';
   scene.setExpression(null);
@@ -358,7 +381,7 @@ function resetToIntro() {
   state.startedAt = 0;
   state.stopReason = null;
   els.expressionNote.hidden = true;
-  els.previewCard.classList.remove('hidden-preview', 'demo-mode');
+  els.previewCard.classList.remove('hidden-preview', 'demo-mode', 'mock-mode');
   els.previewToggle.textContent = 'Hide preview';
   els.previewLabel.textContent = 'Positioning';
   els.timer.textContent = '0:00';
@@ -455,7 +478,7 @@ async function startDemoVideo() {
 }
 
 function stopCamera() {
-  els.previewCard.classList.remove('camera-mode');
+  els.previewCard.classList.remove('camera-mode', 'mock-mode');
   if (els.previewCanvas) {
     els.previewCanvas.hidden = true;
     const ctx = els.previewCanvas.getContext('2d');
@@ -769,7 +792,7 @@ function startTicker() {
     if (now >= state.pacedEndsAt) requestStop('complete');
 
     if (state.hintAt && now - state.hintAt > 9000) {
-      setHint(config.demo ? DEMO_HINT : DEFAULT_HINT);
+      setHint(config.mock ? MOCK_HINT : config.demo ? DEMO_HINT : DEFAULT_HINT);
       state.hintAt = 0;
     }
     if (state.expressionAt && now - state.expressionAt > 12000) {

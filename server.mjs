@@ -20,6 +20,7 @@ const DEMO_VIDEO = process.env.DEMO_VIDEO
   ? path.resolve(process.cwd(), process.env.DEMO_VIDEO)
   : null;
 const DEMO_ENABLED = Boolean(DEMO_VIDEO && existsSync(DEMO_VIDEO));
+const MOCK = process.env.SIGNAL_SOURCE === 'mock' || process.env.MOCK === '1';
 const CAPTURE_MODE = process.env.CAPTURE_MODE === 'frames' ? 'frames' : 'camera';
 const CAMERA_WIDTH = Number(process.env.CAMERA_WIDTH || 1280);
 const CAMERA_HEIGHT = Number(process.env.CAMERA_HEIGHT || 720);
@@ -74,8 +75,9 @@ function configPayload() {
   return {
     version: VERSION,
     hasKey: Boolean(API_KEY),
+    mock: MOCK,
     demo: DEMO_ENABLED,
-    captureMode: DEMO_ENABLED ? 'file' : CAPTURE_MODE,
+    captureMode: MOCK ? 'mock' : DEMO_ENABLED ? 'file' : CAPTURE_MODE,
     camera: {
       width: CAMERA_WIDTH,
       height: CAMERA_HEIGHT,
@@ -295,7 +297,7 @@ async function startSession(ws, message) {
     ws.send(JSON.stringify({ type: 'error', code: 'busy', message: 'A session is already running.' }));
     return;
   }
-  if (!API_KEY) {
+  if (!MOCK && !API_KEY) {
     ws.send(
       JSON.stringify({
         type: 'error',
@@ -307,24 +309,28 @@ async function startSession(ws, message) {
   }
   let SmartSession;
   let sdkModule = null;
-  try {
-    sdkModule = await import('@smartspectra/node-sdk');
-    ({ SmartSession } = await import('./lib/session.mjs'));
-  } catch (error) {
-    ws.send(
-      JSON.stringify({
-        type: 'error',
-        code: 'sdk_unavailable',
-        message: `SmartSpectra could not load on ${process.platform}-${process.arch}. ${error.message}`,
-      }),
-    );
-    return;
+  if (MOCK) {
+    ({ MockSession: SmartSession } = await import('./lib/mock-session.mjs'));
+  } else {
+    try {
+      sdkModule = await import('@smartspectra/node-sdk');
+      ({ SmartSession } = await import('./lib/session.mjs'));
+    } catch (error) {
+      ws.send(
+        JSON.stringify({
+          type: 'error',
+          code: 'sdk_unavailable',
+          message: `SmartSpectra could not load on ${process.platform}-${process.arch}. ${error.message}`,
+        }),
+      );
+      return;
+    }
   }
   if (active) {
     ws.send(JSON.stringify({ type: 'error', code: 'busy', message: 'A session is already running.' }));
     return;
   }
-  const mode = DEMO_ENABLED ? 'file' : CAPTURE_MODE;
+  const mode = MOCK ? 'mock' : DEMO_ENABLED ? 'file' : CAPTURE_MODE;
   const includeFace = message.includeFace !== false;
   let cameraId = process.env.CAMERA_ID || null;
   if (mode === 'camera' && !cameraId && sdkModule) {
@@ -332,18 +338,20 @@ async function startSession(ws, message) {
       cameraId = sdkModule.SmartSpectraSDK.availableCameras()[0]?.id || null;
     } catch {}
   }
-  const session = new SmartSession({
-    apiKey: API_KEY,
-    mode,
-    videoPath: DEMO_ENABLED ? DEMO_VIDEO : null,
-    includeFace,
-    cameraId,
-    cameraOptions: {
-      width: CAMERA_WIDTH,
-      height: CAMERA_HEIGHT,
-      fps: CAMERA_FPS,
-    },
-  });
+  const session = MOCK
+    ? new SmartSession({ settleMs: SETTLE_MS, sessionMs: SESSION_MS, includeFace })
+    : new SmartSession({
+        apiKey: API_KEY,
+        mode,
+        videoPath: DEMO_ENABLED ? DEMO_VIDEO : null,
+        includeFace,
+        cameraId,
+        cameraOptions: {
+          width: CAMERA_WIDTH,
+          height: CAMERA_HEIGHT,
+          fps: CAMERA_FPS,
+        },
+      });
   const current = {
     id: ++stopCounter,
     ws,
@@ -577,7 +585,9 @@ keepAlive.unref?.();
 
 server.listen(PORT, HOST, () => {
   console.log(`Stillpoint listening on http://${HOST}:${PORT}`);
-  if (!API_KEY) {
+  if (MOCK) {
+    console.log('Simulated-signal mode: no camera and no API key. Values are generated locally.');
+  } else if (!API_KEY) {
     console.log('No SMARTSPECTRA_API_KEY set. Copy .env.example to .env and add a key.');
   }
   if (DEMO_VIDEO && !DEMO_ENABLED) {
