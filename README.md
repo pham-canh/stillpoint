@@ -15,11 +15,14 @@ slower rhythm instead of asking you to match an arbitrary one.
 
 > Built for the [Presage SmartSpectra SDK Challenge](https://dev.to/challenges/presage-2026-11-04).
 
-[Watch the 2-minute demo](https://github.com/pham-canh/stillpoint/releases/download/demo-v1/stillpoint-demo.mp4)
-· [Release page](https://github.com/pham-canh/stillpoint/releases/tag/demo-v1)
+[Watch the 2-minute demo](https://youtu.be/MQLBcSP6_h8) — a full default session (32 s settle +
+90 s guided) on Linux x64 with a USB camera.
 
-The demo uses a 70-second shortened session (`SETTLE_MS` / `SESSION_MS`) to keep the video tight;
-the default experience is 32 seconds of settling plus 90 seconds of guided breathing.
+![Stillpoint session summary: 2:05, 9 guided breaths, 72 bpm average pulse, 12.4 breaths per minute, HRV 37 ms, signal Good.](docs/evidence/stillpoint-summary.png)
+
+*The summary from the recorded run. The app shows the four measured metrics and no score.*
+
+Want to feel the pacer before setting up a camera? [Run the simulated mode](#try-it-without-a-camera-or-a-key).
 
 ## Requirements
 
