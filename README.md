@@ -107,7 +107,8 @@ Under the hood it is `SIGNAL_SOURCE=mock npm start`, and the same mode is availa
    app requests only those four metrics; it does not request traces, landmarks, blinking, or talking.
 4. **Settle.** For 32 seconds the interface stays out of the way while the breathing rate warms up.
 5. **Guide.** The pacer starts at your measured breathing period, clamped to 6–12 seconds. It eases
-   toward a 10-second period by 750 ms per breath and never speeds up a slower breather. The orb
+   toward a 10-second period by 750 ms per breath and never speeds up a slower breather inside the
+   6–12 s range; above 12 s the usability cap holds at 12 s. The orb
    grows on a 40% inhale and settles on a 60% exhale.
 6. **Finish.** At 90 guided seconds the session stops, releases the camera, and shows a local
    summary. Nothing is saved.
